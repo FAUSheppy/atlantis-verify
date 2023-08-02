@@ -5,9 +5,14 @@ class Verification(db.model):
     challenge_secret = Column(String, primary_key=True)
     ldap_user = Column(String)
     phone_number = Column(String)
-    verification_type = Column(String) # signal
+    verification_type = Column(String) # signal, email
     status = Column(String) # requesting, dispatching, waiting_for_response, bad_response, finished
 
+
+def email_challenge():
+    # query keycloak api here:
+    # # PUT https://keycloak.atlantishq.de/admin/realms/master/users/d1be393e-2fdf-40a5-9748-35bad4ebb7ed/execute-actions-email?lifespan=43200
+    # # JSON Payload ["VERIFY_EMAIL"]
 
 def signal_challenge():
     # add uid to db
