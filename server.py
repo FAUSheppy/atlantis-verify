@@ -1,5 +1,23 @@
+import hashlib                                                                                      
+import os
+import flask
+import werkzeug
+import argparse
+import sys
+import json
+import datetime
 
-class Verification(db.model):
+import sqlalchemy
+from sqlalchemy import Column, Integer, String, Boolean, or_, and_, asc, desc
+from flask_sqlalchemy import SQLAlchemy
+
+app = flask.Flask("Atlantis Verfication")
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLITE_LOCATION") or "sqlite:///sqlite.db"
+db = SQLAlchemy(app)
+
+class Verification(db.Model):
     
     __tablename__ = "verification"
 
@@ -58,8 +76,8 @@ def signal_challenge():
     payload = { "users": [user], "message" : message }
     request.post(app.config["DISPATCH_SERVER"], json=payload )
 
-@route("/challenge-response", method=["GET", "POST"])
-def index():
+@app.route("/challenge-response", methods=["GET", "POST"])
+def c_response():
 
     if flask.request.method == "GET":
 
@@ -141,6 +159,9 @@ if __name__ == "__main__":
     parser.add_argument('--ldap-manager-password')
 
     args = parser.parse_args()
+
+    # set engine #
+    app.config["SQLALCHEMY_DATABASE_URI"] = args.engine
 
     # define ldap args #
     ldap_args = {
