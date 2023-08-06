@@ -116,6 +116,8 @@ def index():
     # display as [ email ] [ example@atlantishq.com ] [ verified? ] [ verify now ]
 
     user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    if not user:
+        return (500, "X-Forwarded-Preferred-Username header is empty or does not exist")
     verifications = ldaptools.get_verifications_for_user(user, app)
     if not verifications:
         return (500, "User object for this user not found.")
