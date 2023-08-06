@@ -1,0 +1,26 @@
+<head>
+    {% include "head.html" %}
+</head>
+<body>
+    <div class="navbar">
+        <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
+        <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
+    </div>
+    <div class="main-container">
+        <div class="row">
+
+            {% for key, value in verifications.items() %}
+            <div class="col">
+                {{ key }}                
+            </div>
+            <div class="col">
+                {% if value %}
+                <p style="color: green">Verified</p>
+                {% else %}
+                <p style="color: orange">Not Verified</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
