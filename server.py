@@ -84,14 +84,14 @@ def c_response():
 
         cid = flask.request.args.get("cid")
         if not challenge_id:
-            return (400, "Missing cid")
+            return ("Missing cid (challenge_id)", 400)
         else:
             c = db.session.query(Verification).filter(Verification.challenge_id==cid).first()
             if not c:
-                return (404, "Challenge not found")
+                return ("Challenge not found", 404)
             else:
                 update_status(c)
-                return (200, c.status)
+                return (c.status, 200)
 
     elif flask.request.method == "POST":
 
@@ -100,9 +100,9 @@ def c_response():
 
         c = db.session.query(Verification).filter(Verification.challenge_id==cid).first()
         if not c:
-            return (404, "Challenge not found")
+            return ("Challenge not found", 404)
         elif secret != c.challenge_secret:
-            return (400, "Secret Missmatch")
+            return ("Secret Missmatch", 400)
         else:
             ldaptools.ldap_accept_verification(c)
             db.session.delete(c)
@@ -117,10 +117,10 @@ def index():
 
     user = flask.request.headers.get("X-Forwarded-Preferred-Username")
     if not user:
-        return (500, "X-Forwarded-Preferred-Username header is empty or does not exist")
+        return ("X-Forwarded-Preferred-Username header is empty or does not exist", 500)
     verifications = ldaptools.get_verifications_for_user(user, app)
     if not verifications:
-        return (500, "User object for this user not found.")
+        return ("User object for this user not found.", 500)
 
     print(verifications)
 
