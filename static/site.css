@@ -1,0 +1,110 @@
+body{
+    background: #47918a;
+    background: radial-gradient(ellipse at center, #47918a 0%, #0b3161 100%);
+}
+
+.seperator{
+    display: inline-block;
+    float: left;
+    width: 100%;
+    margin-top: 30px;
+}
+
+.sperator.hr{
+    display: inline-block;
+    float: left;
+    width: 100%;
+    height: 4px;
+    border-width: 4px
+}
+
+.tile{
+    color: aliceblue;
+    font-weight: bold;
+    font-size: 18px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, rgba(0,36,4,1) 0%, rgba(43,84,35,0.7763480392156863) 42%);
+    max-height: 250px;
+    min-width: 100px;
+    width: 400px;
+    float: left;
+    display: inline-block;
+    margin: 20px;
+    box-shadow: 0px 0px 4px 3px rgba(0,0,0,0.5);
+    position: relative;
+    text-shadow: 2px 2px 10px #134409;
+    max-width: 87%;
+}
+
+.tile:hover{
+    opacity: 0.8;
+}
+
+.tile-name{
+    margin-left: 30px;
+    font-family: monospace;
+}
+
+.tile-image{
+    margin-left:    12px;
+    margin-top:     12px;
+    margin-bottom:  12px;
+}
+
+.main-container{
+    max-width: 1400px;
+    min-width: 80%;
+    margin: auto;
+}
+
+.navbar{
+    width: 100%;
+    background: rgba(0,0,0,0);
+    display: block;
+    box-shadow: none;
+    padding: 20px;
+}
+
+.navbar-el{
+    float: right;
+    display: inline-block;
+    background: rgba(0,0,0,0);
+    color: aliceblue;
+}
+
+.navbar-el:hover{
+    color: darkgray;
+}
+
+.wellcome{
+    width: 100%;
+    text-align: center;
+    font-size: 25px;
+    margin-top: 30px;
+    color: lightgreen;
+}
+
+.stats-footer{
+    margin-top: 30px;
+    margin-bottom: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 11px;
+    max-width: 1000px;
+    clear: both;
+    display: none;
+}
+
+.auth-type{
+    position: absolute;
+    bottom: 5px;
+    right: 13px;
+    font-size: 10px;
+    color: black;
+}
+
+@media(max-width: 500px){
+    .tile{
+        font-size: 3.5vw !important;
+    }
+}

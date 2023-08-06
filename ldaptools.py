@@ -12,7 +12,7 @@ def ldap_accept_verification(verification, app):
 
         # estabilish connection 
         conn = ldap.initialize(ldap_server) 
-        conn.simple_bind_s(manager_dn, manager_password) 
+        conn.simple_bind_s(manager_dn, manager_pw) 
   
         # search in scope # 
         # TODO: update LDAP here
@@ -31,31 +31,41 @@ def get_verifications_for_user(user, app):
     ldap_args = app.config["LDAP_ARGS"]
     search_filter = "(&(objectClass=inetOrgPerson)(uid={username}))".format(username=user)
 
-    if verification.verification_type == "signal":
+    ldap_server = ldap_args["LDAP_SERVER"]
+    manager_dn = ldap_args["LDAP_BIND_DN"]
+    manager_pw = ldap_args["LDAP_BIND_PW"]
+    base_dn = ldap_args["LDAP_BASE_DN"]
 
-        ldap_server = ldap_args["LDAP_SERVER"]
-        manager_dn = ldap_args["LDAP_BIND_DN"]
-        manager_pw = ldap_args["LDAP_BIND_PW"]
-        base_dn = ldap_args["LDAP_BASE_DN"]
+    print(ldap_args)
 
-        # estabilish connection 
-        conn = ldap.initialize(ldap_server) 
-        conn.simple_bind_s(manager_dn, manager_password) 
+    # estabilish connection 
+    conn = ldap.initialize(ldap_server) 
+    conn.simple_bind_s(manager_dn, manager_pw) 
   
-        # search in scope # 
-        search_scope = ldap.SCOPE_SUBTREE 
-        search_results = conn.search_s(base_dn, search_scope, search_filter) 
-        
-        # unbind from connection and return # 
-        conn.unbind_s() 
+    # search in scope # 
+    search_scope = ldap.SCOPE_SUBTREE 
+    search_results = conn.search_s(base_dn, search_scope, search_filter) 
+    
+    # unbind from connection and return # 
+    conn.unbind_s() 
 
-        if len(search_filter) == 0:
-            return None
-        else:
-            cn, entry = search_results[0]
-       
-        print(cn, entry)
-        return entry.status
-
+    if len(search_results) == 0:
+        return None
     else:
-        raise NotImplementedError(verification.verification_type)
+        cn, entry = search_results[0]
+    
+    print(cn, entry)
+
+    # check email_verified boolean #
+    email_verified = entry.get("emailVerified")
+    if email_verified and len(email_verified) >= 0 and email_verified[0]:
+        email_verified = True
+
+    # check signal verified boolean #
+    signal_verified = entry.get("signalVerified")
+    if signal_verified and len(signal_verified) >= 0 and signal_verified[0]:
+        signal_verified = True
+
+    # build response #
+    keywords = { "email" : email_verified, "signal" : signal_verified }
+    return keywords

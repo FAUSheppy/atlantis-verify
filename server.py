@@ -6,6 +6,7 @@ import argparse
 import sys
 import json
 import datetime
+import ldaptools
 
 import sqlalchemy
 from sqlalchemy import Column, Integer, String, Boolean, or_, and_, asc, desc
@@ -116,6 +117,10 @@ def index():
 
     user = flask.request.headers.get("X-Forwarded-Preferred-Username")
     verifications = ldaptools.get_verifications_for_user(user, app)
+    if not verifications:
+        return (500, "User object for this user not found.")
+
+    print(verifications)
 
     return flask.render_template("index.html", verifications=verifications)
 
