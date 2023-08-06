@@ -7,20 +7,21 @@
         <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
     </div>
     <div class="main-container">
-        <div class="row">
 
-            {% for key, value in verifications.items() %}
-            <div class="col">
+        {% for key, value in verifications.items() %}
+        <div class="row" style="margin: auto;">
+            <div class="col-3">
                 {{ key }}                
             </div>
-            <div class="col">
+            <div class="col-3">
                 {% if value %}
                 <p style="color: green">Verified</p>
                 {% else %}
                 <p style="color: orange">Not Verified</p>
+                <a href="/verify?type={{ key }}" class="btn btn-primary">Verify Now</a>
                 {% endif %}
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
 </body>

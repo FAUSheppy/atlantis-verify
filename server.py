@@ -8,6 +8,8 @@ import json
 import datetime
 import ldaptools
 
+from keycloak import KeycloakAdmin
+
 import sqlalchemy
 from sqlalchemy import Column, Integer, String, Boolean, or_, and_, asc, desc
 from flask_sqlalchemy import SQLAlchemy
@@ -77,13 +79,44 @@ def signal_challenge():
     payload = { "users": [user], "message" : message }
     request.post(app.config["DISPATCH_SERVER"], json=payload )
 
+def verify_email(user):
+
+    keycloak_admin = KeycloakAdmin(server_url=app.config["KEYCLOAK_URL"],
+                            realm_name=app.config["KEYCLOAK_REALM"],
+                            username=app.config["KEYCLOAK_ADMIN_USER"],
+                            password=app.config["KEYCLOAK_ADMIN_PASS"])
+
+    keycloak_users = keycloak_admin.get_users({ "username" : user })
+    if len(keycloak_users) <= 0:
+        raise ValueError("User not found: {}".format(user))
+    else:
+        user_id = keycloak_users[0].get("id")
+        response = keycloak_admin.send_verify_email(user_id=user_id)
+        print("Email Verification send for {}".format(user))
+
+@app.route("/verify")
+def verify_route():
+
+    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+   
+    verify_type = flask.request.args.get("type")
+    if not verify_type:
+        return ("Missing mandetory parameter 'type' for verification", 500)
+    elif verify_type == "signal":
+        return flask.render_template("verify_email.html", user=user)
+    elif verify_type == "email":
+        verify_email(user)
+        return ("", 204)
+    else:
+        return ("Unknown verification type {}".format(flask.request.args.type), 500)
+
 @app.route("/challenge-response", methods=["GET", "POST"])
 def c_response():
 
     if flask.request.method == "GET":
 
         cid = flask.request.args.get("cid")
-        if not challenge_id:
+        if not cid:
             return ("Missing cid (challenge_id)", 400)
         else:
             c = db.session.query(Verification).filter(Verification.challenge_id==cid).first()
@@ -160,6 +193,11 @@ if __name__ == "__main__":
     parser.add_argument('--engine', default="sqlite://",
                               help="e.g. postgresql+psycopg2://user:pass@localhost/dbname")
 
+    parser.add_argument('--keycloak-url')
+    parser.add_argument('--keycloak-realm', default="master")
+    parser.add_argument('--keycloak-admin-pass')
+    parser.add_argument('--keycloak-admin-user')
+
     parser.add_argument('--ldap-server')
     parser.add_argument('--ldap-base-dn')
     parser.add_argument('--ldap-manager-dn')
@@ -167,8 +205,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # set engine #
+    # set app config #
     app.config["SQLALCHEMY_DATABASE_URI"] = args.engine
+    app.config["KEYCLOAK_URL"] = args.keycloak_url
+    app.config["KEYCLOAK_REALM"] = args.keycloak_realm
+    app.config["KEYCLOAK_ADMIN_USER"] = args.keycloak_admin_user
+    app.config["KEYCLOAK_ADMIN_PASS"] = args.keycloak_admin_pass
 
     # define ldap args #
     ldap_args = {
