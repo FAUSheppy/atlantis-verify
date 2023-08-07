@@ -1,0 +1,34 @@
+<head>
+    {% include "head.html" %}
+</head>
+<body>
+    <div class="navbar">
+        <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
+        <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
+    </div>
+    <div class="main-container">
+
+            <div class="center">
+                A mail was sent to <i id="mail"></i>.
+                Please go to your mail account and follow the instructions.
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Waiting for confirmation...</span>
+                </div>
+            </div>
+    </div>
+    <script>
+        function check_mail_status(){
+			fetch("/verification-status", { credentials: "include" }).then(response => {
+            	response.json().then(data => {
+					console.log(data)
+					document.getElementById("mail").innerHTML = data.email_address
+					if(data.email){
+						window.location.href = "/"
+					}
+				})
+            })
+        }
+		window.onload = check_mail_status
+		setInterval(check_mail_status, 1000)
+    </script>
+</body>

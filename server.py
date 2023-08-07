@@ -94,6 +94,17 @@ def verify_email(user):
         response = keycloak_admin.send_verify_email(user_id=user_id)
         print("Email Verification send for {}".format(user))
 
+@app.route("/verification-status")
+def verification_status():
+
+    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    verifications = ldaptools.get_verifications_for_user(user, app)
+
+    # FIXME: having email and phone number exposed here is actually kinda stupid and CRSF-leaky
+    # the correct solution would be to get it from OIDC/keycloak directly without LDAP
+
+    return flask.jsonify(verifications)
+
 @app.route("/verify")
 def verify_route():
 
@@ -103,10 +114,10 @@ def verify_route():
     if not verify_type:
         return ("Missing mandetory parameter 'type' for verification", 500)
     elif verify_type == "signal":
-        return flask.render_template("verify_email.html", user=user)
+        return flask.render_template("verify_signal.html", user=user)
     elif verify_type == "email":
         verify_email(user)
-        return ("", 204)
+        return flask.render_template("verify_mail_waiting_page.html")
     else:
         return ("Unknown verification type {}".format(flask.request.args.type), 500)
 

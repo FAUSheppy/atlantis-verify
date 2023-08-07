@@ -66,6 +66,19 @@ def get_verifications_for_user(user, app):
     if signal_verified and len(signal_verified) >= 0 and signal_verified[0]:
         signal_verified = True
 
+    # get email address #
+    email_address = entry.get("mail")
+    if email_address and len(email_address) >= 0 and email_address[0]:
+        email_address = email_address[0].decode("utf-8")
+
+    # get phone number address #
+    phone_number = entry.get("telephoneNumber")
+    if phone_number and len(phone_number) >= 0 and phone_number[0]:
+        phone_number = phone_number[0].decode("utf-8")
+
     # build response #
-    keywords = { "email" : email_verified, "signal" : signal_verified }
+    keywords = { "email" : email_verified, "signal" : signal_verified,
+                 "email_address" : email_address,
+                 "phone_number" : phone_number }
+
     return keywords
