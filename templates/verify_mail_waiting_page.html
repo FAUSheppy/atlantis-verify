@@ -21,8 +21,8 @@
 			fetch("/verification-status", { credentials: "include" }).then(response => {
             	response.json().then(data => {
 					console.log(data)
-					document.getElementById("mail").innerHTML = data.email_address
-					if(data.email){
+					document.getElementById("mail").innerHTML = data.data.email_address
+					if(data.verifications.email){
 						window.location.href = "/"
 					}
 				})

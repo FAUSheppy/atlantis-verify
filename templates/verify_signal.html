@@ -1,0 +1,36 @@
+<head>
+    {% include "head.html" %}
+</head>
+<body>
+    <div class="navbar">
+        <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
+        <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
+    </div>
+    <div class="main-container">
+
+            <div class="center">
+                A signal message was sent to <i id="signal"></i>.
+                Please open your signal and enter the code your received.
+                <input id="input" type=text></input>
+                <p id="status">Waiting for status info..</p>
+                <div class="spinner-border" role="status">
+                    <span class="sr-only"></span>
+                </div>
+            </div>
+    </div>
+    <script>
+        // TODO INPUT check (secret check)
+        // TODO FILL PHONE NUMBER
+        function check_signal_status(){
+            url = "/challenge-response?cid={{ cid }}"
+			fetch(url, { credentials: "include" }).then(response => {
+            	response.text().then(data => {
+					console.log(data)
+					document.getElementById("status").innerHTML = data
+				})
+            })
+        }
+		window.onload = check_signal_status
+		setInterval(check_signal_status, 1000)
+    </script>
+</body>

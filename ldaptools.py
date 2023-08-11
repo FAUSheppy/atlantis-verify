@@ -77,8 +77,8 @@ def get_verifications_for_user(user, app):
         phone_number = phone_number[0].decode("utf-8")
 
     # build response #
-    keywords = { "email" : email_verified, "signal" : signal_verified,
-                 "email_address" : email_address,
-                 "phone_number" : phone_number }
+    verifications = { "email" : email_verified, "signal" : signal_verified }
+    data = { "email_address" : email_address, "phone_number" : phone_number }
+    keywords = { "verifications" : verifications, "data" : data }
 
     return keywords

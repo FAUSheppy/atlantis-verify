@@ -2,6 +2,8 @@ import hashlib
 import os
 import flask
 import werkzeug
+import secrets
+import requests
 import argparse
 import sys
 import json
@@ -40,8 +42,9 @@ def update_status(verification):
         if verification.status == "waiting_for_response":
             return
         elif verification.status == "waiting_for_dispatch":
-            r = request.get(app.config["DISPATCH_SERVER"] + "?id={}".format(v.dispatch_id))
-            if r.status == 404:
+            r = requests.get(app.config["DISPATCH_SERVER"] + "?id={}".format(
+                                verification.dispatch_id))
+            if r.status_code == 404:
                 v.status = "waiting_for_response"
                 db.session.commit()
             else:
@@ -58,11 +61,14 @@ def email_challenge():
     # # PUT https://keycloak.atlantishq.de/admin/realms/master/users/d1be393e-2fdf-40a5-9748-35bad4ebb7ed/execute-actions-email?lifespan=43200
     # # JSON Payload ["VERIFY_EMAIL"]
 
-def signal_challenge():
+def signal_challenge(user):
 
     # add uid to db #
-    challenge_id = secrets.token_url_safe(20)
-    secret = secrets.token_url_safe(3)
+    challenge_id = secrets.token_urlsafe(20)
+    secret = secrets.token_urlsafe(3)
+
+    phone_number = "TODO get phone number"
+
     verification = Verification(challenge_id=challenge_id,
                                     challenge_secret=secret,
                                     ldap_user=user,
@@ -77,7 +83,12 @@ def signal_challenge():
     message += "If you did not request this code please ignore this message "
     message += "or report it to root@atlantishq.de."
     payload = { "users": [user], "message" : message }
-    request.post(app.config["DISPATCH_SERVER"], json=payload )
+
+    r = requests.post(app.config["DISPATCH_SERVER"], json=payload )
+    if not r.ok:
+        return (None, "Dispatcher responded {} {}".format(r.content, r.status_code))
+
+    return (challenge_id, None)
 
 def verify_email(user):
 
@@ -114,7 +125,10 @@ def verify_route():
     if not verify_type:
         return ("Missing mandetory parameter 'type' for verification", 500)
     elif verify_type == "signal":
-        return flask.render_template("verify_signal.html", user=user)
+        challenge_id, error = signal_challenge(user)
+        if error:
+            return ("Error creating challenge: {}".format(error))
+        return flask.render_template("verify_signal.html", user=user, cid=challenge_id)
     elif verify_type == "email":
         verify_email(user)
         return flask.render_template("verify_mail_waiting_page.html")
@@ -166,8 +180,6 @@ def index():
     if not verifications:
         return ("User object for this user not found.", 500)
 
-    print(verifications)
-
     return flask.render_template("index.html", verifications=verifications)
 
 @app.route("/status")
@@ -217,6 +229,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # set app config #
+    app.config["DISPATCH_SERVER"] = args.dispatch_server
     app.config["SQLALCHEMY_DATABASE_URI"] = args.engine
     app.config["KEYCLOAK_URL"] = args.keycloak_url
     app.config["KEYCLOAK_REALM"] = args.keycloak_realm
