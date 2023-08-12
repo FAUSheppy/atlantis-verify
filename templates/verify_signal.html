@@ -11,7 +11,8 @@
             <div class="center">
                 A signal message was sent to <i id="signal"></i>.
                 Please open your signal and enter the code your received.
-                <input id="input" type=text></input>
+                <input class="w-100 m-4" id="input-secret" type=text></input>
+				<button class="btn btn-primary" onclick="check_input_secret()">Send</button>
                 <p id="status">Waiting for status info..</p>
                 <div class="spinner-border" role="status">
                     <span class="sr-only"></span>
@@ -19,8 +20,22 @@
             </div>
     </div>
     <script>
-        // TODO INPUT check (secret check)
-        // TODO FILL PHONE NUMBER
+
+        function check_input_secret(){
+            secret = document.getElementById("input-secret").value
+			console.log(secret)
+            // TODO dynamic secret length
+            if(secret.length >= 3){
+            	url = "/challenge-response?cid={{ cid }}" + "&secret=" + secret
+				fetch(url, { method: "POST", credentials: "include" }).then(response => {
+            		response.text().then(data => {
+						console.log(data)
+					})
+            	})
+        	}
+		}
+		document.getElementById("input-secret").addEventListener("input", check_input_secret)
+
         function check_signal_status(){
             url = "/challenge-response?cid={{ cid }}"
 			fetch(url, { credentials: "include" }).then(response => {
@@ -31,6 +46,21 @@
             })
         }
 		window.onload = check_signal_status
-		setInterval(check_signal_status, 1000)
+		//setInterval(check_signal_status, 3000)
+
+        function check_verification_status(){
+			fetch("/verification-status", { credentials: "include" }).then(response => {
+            	response.json().then(data => {
+					console.log(data)
+					document.getElementById("signal").innerHTML = data.data.phone_number
+					if(data.verifications.email){
+						window.location.href = "/"
+					}
+				})
+            })
+        }
+		window.onload = check_verification_status
+		//setInterval(check_verification_status, 3000)
+
     </script>
 </body>

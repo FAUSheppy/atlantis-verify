@@ -2,6 +2,7 @@ import ldap
 def ldap_accept_verification(verification, app):
 
     ldap_args = app.config["LDAP_ARGS"]
+    print(verification.ldap_user)
 
     if verification.verification_type == "signal":
 
@@ -37,6 +38,7 @@ def get_verifications_for_user(user, app):
     base_dn = ldap_args["LDAP_BASE_DN"]
 
     print(ldap_args)
+    print(user)
 
     # estabilish connection 
     conn = ldap.initialize(ldap_server) 

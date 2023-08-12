@@ -1,0 +1,6 @@
+- modify verifications status in ldap for signal
+- fix showing phone number in frontend
+- fix signal status query (query event dispatcher about status stuck currently)
+- prevent flood/reload spam
+- layout
+- add option to add phone number

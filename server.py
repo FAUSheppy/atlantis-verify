@@ -5,6 +5,7 @@ import werkzeug
 import secrets
 import requests
 import argparse
+import string
 import sys
 import json
 import datetime
@@ -19,7 +20,8 @@ from flask_sqlalchemy import SQLAlchemy
 app = flask.Flask("Atlantis Verfication")
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLITE_LOCATION") or "sqlite:///sqlite.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sqlite.db"
+print(app.config["SQLALCHEMY_DATABASE_URI"])
 db = SQLAlchemy(app)
 
 class Verification(db.Model):
@@ -42,13 +44,13 @@ def update_status(verification):
         if verification.status == "waiting_for_response":
             return
         elif verification.status == "waiting_for_dispatch":
-            r = requests.get(app.config["DISPATCH_SERVER"] + "?id={}".format(
-                                verification.dispatch_id))
-            if r.status_code == 404:
-                v.status = "waiting_for_response"
+            url = app.config["DISPATCH_SERVER"]
+            url += "/get-dispatch-status/?secret={}".format(verification.dispatch_id)
+            r = requests.get(url, auth=app.config["DISPATCH_AUTH"])
+            print(r.ok, r.content)
+            if r.ok:
+                verification.status = r.content
                 db.session.commit()
-            else:
-                return
         else:
             return # nothing to do
     else:
@@ -65,28 +67,36 @@ def signal_challenge(user):
 
     # add uid to db #
     challenge_id = secrets.token_urlsafe(20)
-    secret = secrets.token_urlsafe(3)
+
+    alphabet = string.ascii_letters + string.digits
+    secret = ''.join(secrets.choice(alphabet) for i in range(5))
+    secret = secret.upper()
 
     phone_number = "TODO get phone number"
+
+    # send to event dispatcher #
+    message = "Your verification code is {}.\n".format(secret)
+    message += "If you did not request this code please ignore this message "
+    message += "or report it to root@atlantishq.de."
+    payload = { "users": [user], "msg" : message }
+
+    r = requests.post(app.config["DISPATCH_SERVER"] + "/smart-send",
+                    json=payload, auth=app.config["DISPATCH_AUTH"])
+    if not r.ok:
+        return (None, "Dispatcher responded {} {}".format(r.content, r.status_code))
+
+    print(r.content)
+    print(r.json())
 
     verification = Verification(challenge_id=challenge_id,
                                     challenge_secret=secret,
                                     ldap_user=user,
                                     phone_number=phone_number,
                                     verification_type="signal",
+                                    dispatch_id=r.json()[0],
                                     status="waiting_for_dispatch")
     db.session.add(verification)
     db.session.commit()
-
-    # send to event dispatcher #
-    message = "Your verification code is {}.\n"
-    message += "If you did not request this code please ignore this message "
-    message += "or report it to root@atlantishq.de."
-    payload = { "users": [user], "message" : message }
-
-    r = requests.post(app.config["DISPATCH_SERVER"], json=payload )
-    if not r.ok:
-        return (None, "Dispatcher responded {} {}".format(r.content, r.status_code))
 
     return (challenge_id, None)
 
@@ -110,6 +120,7 @@ def verification_status():
 
     user = flask.request.headers.get("X-Forwarded-Preferred-Username")
     verifications = ldaptools.get_verifications_for_user(user, app)
+    print(verifications)
 
     # FIXME: having email and phone number exposed here is actually kinda stupid and CRSF-leaky
     # the correct solution would be to get it from OIDC/keycloak directly without LDAP
@@ -154,7 +165,7 @@ def c_response():
     elif flask.request.method == "POST":
 
         cid = flask.request.args.get("cid")
-        secrets = flask.request.args.get("secret")
+        secret = flask.request.args.get("secret")
 
         c = db.session.query(Verification).filter(Verification.challenge_id==cid).first()
         if not c:
@@ -162,8 +173,8 @@ def c_response():
         elif secret != c.challenge_secret:
             return ("Secret Missmatch", 400)
         else:
-            ldaptools.ldap_accept_verification(c)
-            db.session.delete(c)
+            ldaptools.ldap_accept_verification(c, app)
+            #db.session.delete(c)
             db.session.commit()
 
 
@@ -226,7 +237,20 @@ if __name__ == "__main__":
     parser.add_argument('--ldap-manager-dn')
     parser.add_argument('--ldap-manager-password')
 
+    parser.add_argument('--dispatcher-passfile', required=True)
+
     args = parser.parse_args()
+
+
+    with open(args.dispatcher_passfile) as f:
+
+        content = f.read()
+
+        user = content.split("\n")[0]
+        password = content.split("\n")[1]
+
+        app.config["DISPATCH_AUTH"] = (user, password)
+        print(app.config["DISPATCH_AUTH"])
 
     # set app config #
     app.config["DISPATCH_SERVER"] = args.dispatch_server
