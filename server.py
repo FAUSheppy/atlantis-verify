@@ -43,19 +43,22 @@ def update_status(verification):
     if verification.verification_type == "signal":
         if verification.status == "waiting_for_response":
             return
-        elif verification.status == "waiting_for_dispatch":
+        elif(verification.status == "waiting_for_dispatch" or
+                verification.status == b'Waiting for dispatch'):
             url = app.config["DISPATCH_SERVER"]
-            url += "/get-dispatch-status/?secret={}".format(verification.dispatch_id)
+            url += "/get-dispatch-status?secret={}".format(verification.dispatch_id)
             r = requests.get(url, auth=app.config["DISPATCH_AUTH"])
             print(r.ok, r.content)
             if r.ok:
-                verification.status = r.content
+                if r.content == b"Not in Queue":
+                    verification.status = "Message Sent - Please enter code"
+                else:
+                    verification.status = r.content
                 db.session.commit()
         else:
             return # nothing to do
     else:
         raise NotImplementedError(verification.verification_type)
-
 
 def email_challenge():
     pass
@@ -174,8 +177,9 @@ def c_response():
             return ("Secret Missmatch", 400)
         else:
             ldaptools.ldap_accept_verification(c, app)
-            #db.session.delete(c)
+            db.session.delete(c)
             db.session.commit()
+            return ("", 204)
 
 
 @app.route("/")
