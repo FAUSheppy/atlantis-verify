@@ -14,12 +14,21 @@ def ldap_accept_verification(verification, app):
         # estabilish connection 
         conn = ldap.initialize(ldap_server) 
         conn.simple_bind_s(manager_dn, manager_pw) 
-  
-        # search in scope # 
-        # TODO: update LDAP here
-        # search_scope = ldap.SCOPE_SUBTREE 
-        # search_results = conn.search_s(base_dn, search_scope, search_filter) 
-        
+ 
+        user = verification.ldap_user
+        search_filter = "(&(objectClass=inetOrgPerson)(uid={username}))".format(username=user)
+        search_scope = ldap.SCOPE_SUBTREE 
+        search_results = conn.search_s(base_dn, search_scope, search_filter) 
+
+        # check and modify #
+        if len(search_results) == 0:
+            raise ValueError("User {} not found in LDAP, cannot modify".format(user))
+        else:
+            user_cn, entry = search_results[0]
+
+        modified_entry = [(ldap.MOD_REPLACE, "signalVerified", True)]
+        conn.modify_s(user_cn, modified_entry)
+
         # unbind from connection and return # 
         conn.unbind_s() 
         return search_results 
