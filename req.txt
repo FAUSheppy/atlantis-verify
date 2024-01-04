@@ -1,4 +1,5 @@
-keycloak
+keycloak-client
 flask
 requests
 flask-sqlalchemy
+python-ldap
