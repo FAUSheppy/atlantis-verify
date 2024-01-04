@@ -212,7 +212,7 @@ def create_app():
 
     db.create_all()
 
-    if not app.config.get("LDAP_NO_READ_ENV"):
+    if not app.config.get("NO_READ_ENV"):
         ldap_args = {
             "LDAP_SERVER"  : os.environ["LDAP_SERVER"],
             "LDAP_BIND_DN" : os.environ["LDAP_BIND_DN"],
@@ -221,6 +221,11 @@ def create_app():
         }
         app.config["LDAP_ARGS"] = ldap_args
         print("Setting LDAP_ARGS...")
+
+    if not app.config.get("NO_READ_ENV"):
+        user = app.config["DISPATCH_AUTH_USER"]
+        password = app.config["DISPATCH_AUTH_PASSWORD"]
+        app.config["DISPATCH_AUTH"] = (user, password)
 
 if __name__ == "__main__":
 
@@ -278,7 +283,7 @@ if __name__ == "__main__":
         "LDAP_BIND_PW" : args.ldap_manager_password,
         "LDAP_BASE_DN" : args.ldap_base_dn,
     }
-    app.config["LDAP_NO_READ_ENV"] = True
+    app.config["NO_READ_ENV"] = True
 
     if not any([value is None for value in ldap_args.values()]):
         app.config["LDAP_ARGS"] = ldap_args
