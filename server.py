@@ -222,8 +222,8 @@ def create_app():
         app.config["LDAP_ARGS"] = ldap_args
         print("Setting LDAP_ARGS...")
 
-        user = app.config["DISPATCH_AUTH_USER"]
-        password = app.config["DISPATCH_AUTH_PASSWORD"]
+        user = os.environ["DISPATCH_AUTH_USER"]
+        password = os.environ["DISPATCH_AUTH_PASSWORD"]
         app.config["DISPATCH_AUTH"] = (user, password)
 
         app.config["DISPATCH_SERVER"] = os.environ["DISPATCH_SERVER"]
