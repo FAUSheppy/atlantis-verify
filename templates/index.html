@@ -2,13 +2,7 @@
     {% include "head.html" %}
 </head>
 <body>
-    <div class="navbar">
-        <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
-        {% if main_home %}
-        <a style="float: left" href="{{ main_home }}" class="navbar-el">Home</a>
-        {% endif %}
-        <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
-    </div>
+    {% include "navbar.html" %}
     <div class="main-container">
 
         {% for key, value in verifications["verifications"].items() %}

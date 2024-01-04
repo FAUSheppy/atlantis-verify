@@ -1,0 +1,7 @@
+    <div class="navbar">
+        {% if main_home %}
+        <a style="float: left; margin-right: 20px;" href="{{ main_home }}" class="navbar-el">Home</a>
+        {% endif %}
+        <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
+        <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
+    </div>

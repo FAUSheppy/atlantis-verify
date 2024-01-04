@@ -72,8 +72,11 @@ def get_verifications_for_user(user, app):
 
     # check email_verified boolean #
     email_verified = entry.get("emailVerified")
-    if email_verified and len(email_verified) >= 0 and email_verified[0]:
+    print(email_verified)
+    if email_verified and len(email_verified) >= 0 and email_verified[0] and email_verified[0] == b"true":
         email_verified = True
+    else:
+        email_verified = False
 
     # check signal verified boolean #
     signal_verified = entry.get("signalVerified")

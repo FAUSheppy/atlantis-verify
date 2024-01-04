@@ -2,16 +2,14 @@
     {% include "head.html" %}
 </head>
 <body>
-    <div class="navbar">
-        <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
-        <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
-    </div>
-    <div class="main-container">
+    {% include "navbar.html" %}
+    <div class="main-container" style="padding: 0;">
 
-            <div class="center">
-                A mail was sent to <i id="mail"></i>.
-                Please go to your mail account and follow the instructions.
-                <div class="spinner-border" role="status">
+            <div class="center" style="text-align: center;">
+                A mail was sent to <i id="mail"></i>.<br>
+                Please go to your mail account and follow the instructions.<br>
+                <div class="spinner-border" role="status"
+                        style="margin-top: 35px; margin-bottom: 15px;">
                     <span class="sr-only">Waiting for confirmation...</span>
                 </div>
             </div>

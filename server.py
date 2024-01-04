@@ -142,10 +142,12 @@ def verify_route():
         challenge_id, error = signal_challenge(user)
         if error:
             return ("Error creating challenge: {}".format(error))
-        return flask.render_template("verify_signal.html", user=user, cid=challenge_id)
+        return flask.render_template("verify_signal.html", user=user, cid=challenge_id,
+                                        main_home=app.config["MAIN_HOME"])
     elif verify_type == "email":
         verify_email(user)
-        return flask.render_template("verify_mail_waiting_page.html")
+        return flask.render_template("verify_mail_waiting_page.html", user=user,
+                                        main_home=app.config["MAIN_HOME"])
     else:
         return ("Unknown verification type {}".format(flask.request.args.type), 500)
 
@@ -195,7 +197,8 @@ def index():
     if not verifications:
         return ("User object for this user not found.", 500)
 
-    return flask.render_template("index.html", verifications=verifications, main_home=app.config["MAIN_HOME"])
+    return flask.render_template("index.html", user=user, verifications=verifications,
+                                    main_home=app.config["MAIN_HOME"])
 
 @app.route("/status")
 def status():
