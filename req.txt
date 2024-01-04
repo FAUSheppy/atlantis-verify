@@ -1,4 +1,4 @@
-keycloak-client
+python-keycloak
 flask
 requests
 flask-sqlalchemy
