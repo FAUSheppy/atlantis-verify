@@ -4,21 +4,29 @@
 <body>
     <div class="navbar">
         <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
+        {% if main_home %}
+        <a style="float: left" href="{{ main_home }}" class="navbar-el">Home</a>
+        {% endif %}
         <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
     </div>
     <div class="main-container">
 
         {% for key, value in verifications["verifications"].items() %}
         <div class="row" style="margin: auto;">
-            <div class="col-3">
-                {{ key }}                
+            <div class="col-4">
+                <p class="v-info"> {{ key }} </p>
             </div>
-            <div class="col-3">
+            <div class="col-4">
                 {% if value %}
-                <p style="color: green">Verified</p>
+                <p class="v-info" style="color: green">Verified</p>
                 {% else %}
-                <p style="color: orange">Not Verified</p>
-                <a href="/verify?type={{ key }}" class="btn btn-primary">Verify Now</a>
+                <p class="v-info" style="color: orange">Not Verified</p>
+                {% endif %}
+            </div>
+            <div class="col-4">
+                {% if not value %}
+                <a class="btn btn-primary" style="width: max-content;"
+                    href="/verify?type={{ key }}" class="btn btn-primary">Verify Now</a>
                 {% endif %}
             </div>
         </div>

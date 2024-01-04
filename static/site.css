@@ -52,9 +52,24 @@ body{
 }
 
 .main-container{
+    margin-top: 10vh !important;
     max-width: 1400px;
-    min-width: 80%;
+    width: fit-content;
     margin: auto;
+    padding-right: 50px;
+    background: #bde0ff57;
+    border-radius: 5px;
+    border-color: black;
+    border-width: 1px;
+    border-style: double;
+}
+
+.v-info{
+    width: max-content;
+    display: block;
+    margin-right: 10px;
+    margin-left: 10px;
+    line-height: 4;
 }
 
 .navbar{
@@ -74,6 +89,14 @@ body{
 
 .navbar-el:hover{
     color: darkgray;
+}
+
+.center{
+    padding: 10px;
+}
+
+#status{
+    color: #ffe82c;
 }
 
 .wellcome{

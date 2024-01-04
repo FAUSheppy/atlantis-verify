@@ -9,13 +9,18 @@
     <div class="main-container">
 
             <div class="center">
-                A signal message was sent to <i id="signal"></i>.
-                Please open your signal and enter the code your received.
-                <input class="w-100 m-4" id="input-secret" type=text></input>
-				<button class="btn btn-primary" onclick="check_input_secret()">Send</button>
-                <p id="status">Waiting for status info..</p>
-                <div class="spinner-border" role="status">
+                    A signal message was sent to <i id="signal"></i>.<br>
+                    Please open your signal and enter the code your received.<br>
+                <div style="width: fix-content; margin-left: auto; margin-right: auto">
+                    <input class="w-50 mt-4" id="input-secret" type=text></input>
+				    <button class="btn btn-primary" onclick="check_input_secret()">Send</button>
+                </div><br>
+                <div class="status-display spinner-border" role="status"
+                        id="spinner" style="margin-bottom: -6px;">
                     <span class="sr-only"></span>
+                </div>
+                <div style="display: inline-block; margin-left: 20px;">
+                    <p id="status">Waiting for status info..</p>
                 </div>
             </div>
     </div>
@@ -29,7 +34,7 @@
             	url = "/challenge-response?cid={{ cid }}" + "&secret=" + secret
 				fetch(url, { method: "POST", credentials: "include" }).then(response => {
             		response.text().then(data => {
-                        clearInterval(check_signal_status)
+                        clearInterval(css)
 						console.log(data)
 					})
             	})
@@ -43,6 +48,9 @@
             	response.text().then(data => {
 					console.log(data)
 					document.getElementById("status").innerHTML = data
+                    if(data == "Message Sent - Please enter code"){
+                        document.getElementById("spinner").outerHTML = "";
+                    }
 				})
             })
         }

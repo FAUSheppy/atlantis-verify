@@ -195,7 +195,7 @@ def index():
     if not verifications:
         return ("User object for this user not found.", 500)
 
-    return flask.render_template("index.html", verifications=verifications)
+    return flask.render_template("index.html", verifications=verifications, main_home=app.config["MAIN_HOME"])
 
 @app.route("/status")
 def status():
@@ -243,6 +243,8 @@ if __name__ == "__main__":
 
     parser.add_argument('--dispatcher-passfile', required=True)
 
+    parser.add_argument('--main-home', help="Backlink form home button")
+
     args = parser.parse_args()
 
 
@@ -263,6 +265,8 @@ if __name__ == "__main__":
     app.config["KEYCLOAK_REALM"] = args.keycloak_realm
     app.config["KEYCLOAK_ADMIN_USER"] = args.keycloak_admin_user
     app.config["KEYCLOAK_ADMIN_PASS"] = args.keycloak_admin_pass
+
+    app.config["MAIN_HOME"] = args.main_home
 
     # define ldap args #
     ldap_args = {
