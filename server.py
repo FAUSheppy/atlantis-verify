@@ -233,7 +233,7 @@ def create_app():
         app.config["KEYCLOAK_ADMIN_USER"] = os.environ["KEYCLOAK_ADMIN_USER"]
         app.config["KEYCLOAK_ADMIN_PASS"] = os.environ["KEYCLOAK_ADMIN_PASS"]
 
-        app.config["MAIN_HOME"] = args.main_home
+        app.config["MAIN_HOME"] = os.environ["MAIN_HOME"]
 
 
 
