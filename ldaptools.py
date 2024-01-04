@@ -26,7 +26,10 @@ def ldap_accept_verification(verification, app):
         else:
             user_cn, entry = search_results[0]
 
-        modified_entry = [(ldap.MOD_REPLACE, "signalVerified", True)]
+        modified_entry = [(ldap.MOD_ADD, "signalVerified", b"TRUE")]
+        conn.modify_s(user_cn, modified_entry)
+
+        modified_entry = [(ldap.MOD_REPLACE, "signalVerified", b"TRUE")]
         conn.modify_s(user_cn, modified_entry)
 
         # unbind from connection and return # 
