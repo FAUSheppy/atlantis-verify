@@ -2,7 +2,6 @@ import ldap
 def ldap_accept_verification(verification, app):
 
     ldap_args = app.config["LDAP_ARGS"]
-    print(verification.ldap_user)
 
     if verification.verification_type == "signal":
 
@@ -49,9 +48,6 @@ def get_verifications_for_user(user, app):
     manager_pw = ldap_args["LDAP_BIND_PW"]
     base_dn = ldap_args["LDAP_BASE_DN"]
 
-    print(ldap_args)
-    print(user)
-
     # estabilish connection 
     conn = ldap.initialize(ldap_server) 
     conn.simple_bind_s(manager_dn, manager_pw) 
@@ -68,11 +64,9 @@ def get_verifications_for_user(user, app):
     else:
         cn, entry = search_results[0]
     
-    print(cn, entry)
 
     # check email_verified boolean #
     email_verified = entry.get("emailVerified")
-    print(email_verified)
     if email_verified and len(email_verified) >= 0 and email_verified[0] and email_verified[0] == b"true":
         email_verified = True
     else:

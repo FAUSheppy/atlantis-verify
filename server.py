@@ -21,7 +21,6 @@ app = flask.Flask("Atlantis Verfication")
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sqlite.db"
-print(app.config["SQLALCHEMY_DATABASE_URI"])
 db = SQLAlchemy(app)
 
 class Verification(db.Model):
@@ -48,7 +47,6 @@ def update_status(verification):
             url = app.config["DISPATCH_SERVER"]
             url += "/get-dispatch-status?secret={}".format(verification.dispatch_id)
             r = requests.get(url, auth=app.config["DISPATCH_AUTH"])
-            print(r.ok, r.content)
             if r.ok:
                 if r.content == b"Not in Queue":
                     verification.status = "Message Sent - Please enter code"
@@ -88,9 +86,6 @@ def signal_challenge(user):
     if not r.ok:
         return (None, "Dispatcher responded {} {}".format(r.content, r.status_code))
 
-    print(r.content)
-    print(r.json())
-
     verification = Verification(challenge_id=challenge_id,
                                     challenge_secret=secret,
                                     ldap_user=user,
@@ -123,7 +118,6 @@ def verification_status():
 
     user = flask.request.headers.get("X-Forwarded-Preferred-Username")
     verifications = ldaptools.get_verifications_for_user(user, app)
-    print(verifications)
 
     # FIXME: having email and phone number exposed here is actually kinda stupid and CRSF-leaky
     # the correct solution would be to get it from OIDC/keycloak directly without LDAP
@@ -220,7 +214,6 @@ def create_app():
             "LDAP_BASE_DN" : os.environ["LDAP_BASE_DN"]
         }
         app.config["LDAP_ARGS"] = ldap_args
-        print("Setting LDAP_ARGS...")
 
         user = os.environ["DISPATCH_AUTH_USER"]
         password = os.environ["DISPATCH_AUTH_PASSWORD"]
@@ -274,7 +267,6 @@ if __name__ == "__main__":
         password = content.split("\n")[1]
 
         app.config["DISPATCH_AUTH"] = (user, password)
-        print(app.config["DISPATCH_AUTH"])
 
     # set app config #
     app.config["DISPATCH_SERVER"] = args.dispatch_server
