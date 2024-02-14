@@ -1,3 +1,10 @@
 - prevent flood/reload spam
 - add option to add phone number
 - handle CSRF fixme
+
+ntfy:
+ - password
+ - http target (ntfy api)
+ - query api
+ - create ntfy:// link as qr code
+

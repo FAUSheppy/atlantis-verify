@@ -10,6 +10,10 @@ import sys
 import json
 import datetime
 import ldaptools
+import qrcode
+import io
+import ntfy_api
+import PIL
 
 from keycloak import KeycloakAdmin
 
@@ -22,6 +26,15 @@ app = flask.Flask("Atlantis Verfication")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sqlite.db"
 db = SQLAlchemy(app)
+
+class NTFYUser(db.Model):
+
+    __tablename__ = "ntfy"
+    
+    user = Column(String, primary_key=True)
+    topic = Column(String, primary_key=True)
+    password = Column(String)
+
 
 class Verification(db.Model):
     
@@ -123,6 +136,35 @@ def verification_status():
     # the correct solution would be to get it from OIDC/keycloak directly without LDAP
 
     return flask.jsonify(verifications)
+
+@app.route("/qr-encode")
+def qr_encode():
+
+    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    topic = flask.request.args.get("topic")
+    target_clean = app.config["NTFY_PUSH_TARGET"].replace("https://","")
+    img = qrcode.make('ntfy://{}/{}'.format(target_clean, topic))
+    img_io = io.BytesIO()
+    img.save(img_io, 'JPEG', quality=70)
+    img_io.seek(0)
+    return flask.send_file(img_io, mimetype='image/jpeg')
+
+@app.route("/ntfy")
+def ntfy():
+
+    user = flask.request.headers.get("X-Forwarded-Preferred-Username") or "anonymous"
+    user_obj = db.session.query(NTFYUser).filter(NTFYUser.user == user).first()
+
+    if user_obj:
+        password = user_obj.password
+    else:
+        password = secrets.token_urlsafe(10).lower()
+        user_obj = NTFYUser(user=user, topic="{}topic".format(user), password=password)
+        ntfy_api.create(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user_obj)
+        db.session.merge(user_obj)
+
+    return flask.render_template("ntfy_setup.html", user=user, user_obj=user_obj,
+                                    main_home=app.config["MAIN_HOME"])
 
 @app.route("/verify")
 def verify_route():
@@ -228,6 +270,9 @@ def create_app():
 
         app.config["MAIN_HOME"] = os.environ["MAIN_HOME"]
 
+        app.config["NTFY_ACCESS_TOKEN"] = os.environ["NTFY_ACCESS_TOKEN"]
+        app.config["NTFY_API_TARGET"] = os.environ["NTFY_API_TARGET"]
+        app.config["NTFY_PUSH_TARGET"] = os.environ["NTFY_PUSH_TARGET"]
 
 
 if __name__ == "__main__":
