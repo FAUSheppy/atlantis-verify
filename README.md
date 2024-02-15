@@ -33,6 +33,10 @@
             DISPATCH_AUTH_USER=
             DISPATCH_AUTH_PASSWORD=
 
+            NTFY_ACCESS_TOKEN=
+            NTFY_API_TARGET=
+            NTFY_PUSH_TARGET=
+
         ports:
             - 6012:5000
         volumes:

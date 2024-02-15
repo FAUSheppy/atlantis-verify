@@ -158,9 +158,11 @@ def ntfy():
     if user_obj:
         password = user_obj.password
     else:
-        password = secrets.token_urlsafe(10).lower()
-        user_obj = NTFYUser(user=user, topic="{}topic".format(user), password=password)
-        ntfy_api.create(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user_obj)
+        # password = secrets.token_urlsafe(10).lower()
+        password = ""
+        topic = ntfy_api.topic(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user_obj)
+        user_obj = NTFYUser(user=user, topic=topic.format(user), password=password)
+        #ntfy_api.create(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user_obj)
         db.session.merge(user_obj)
 
     return flask.render_template("ntfy_setup.html", user=user, user_obj=user_obj,
