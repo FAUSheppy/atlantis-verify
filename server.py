@@ -155,15 +155,13 @@ def ntfy():
     user = flask.request.headers.get("X-Forwarded-Preferred-Username") or "anonymous"
     user_obj = db.session.query(NTFYUser).filter(NTFYUser.user == user).first()
 
-    if user_obj:
-        password = user_obj.password
-    else:
+    if not user_obj:
         # password = secrets.token_urlsafe(10).lower()
         password = ""
-        topic = ntfy_api.topic(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user_obj)
+        topic = ntfy_api.topic(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user)
         user_obj = NTFYUser(user=user, topic=topic.format(user), password=password)
         #ntfy_api.create(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user_obj)
-        db.session.merge(user_obj)
+        db.session.add(user_obj)
 
     return flask.render_template("ntfy_setup.html", user=user, user_obj=user_obj,
                                     main_home=app.config["MAIN_HOME"])
