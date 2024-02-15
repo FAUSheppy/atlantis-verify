@@ -25,5 +25,23 @@
             </div>
         </div>
         {% endfor %}
+        <div class="row" style="margin: auto;">
+            <div class="col-4">
+                <p class="v-info">NTFY (Push Notifications)</p>
+            </div>
+            <div class="col-4">
+                {% if ntfy_generated %}
+                <p class="v-info" style="color: green">Generated</p>
+                {% else %}
+                <p class="v-info" style="color: orange">Not generated</p>
+                {% endif %}
+            </div>
+            <div class="col-4">
+                {% if not ntfy_generated %}
+                <a class="btn btn-primary" style="width: max-content;"
+                    href="/ntfy" class="btn btn-primary">Generate Now</a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </body>

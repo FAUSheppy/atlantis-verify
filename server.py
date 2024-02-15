@@ -233,8 +233,14 @@ def index():
     if not verifications:
         return ("User object for this user not found.", 500)
 
+    user_obj = db.session.query(NTFYUser).filter(NTFYUser.user == user).first()
+    ntfy_generated = False
+    if user_obj:
+        ntfy_generated = True
+
     return flask.render_template("index.html", user=user, verifications=verifications,
-                                    main_home=app.config["MAIN_HOME"])
+                                    main_home=app.config["MAIN_HOME"],
+                                    ntfy_generated=ntfy_generated)
 
 @app.route("/status")
 def status():

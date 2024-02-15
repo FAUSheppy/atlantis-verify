@@ -5,12 +5,10 @@
     {% include "navbar.html" %}
     <div class="main-container" style="padding: 0;">
         <div class="center" style="text-align: center;">
-			<div class="list">
-				<ul>1. Download the ntfy app from the playstore (or compile it yourself lol)</ul>
-				<ul>2. Add a user with server "https://push.atlantishq.de", user</ul>
-				<ul>3. Scan the QR-Code and enter your user ({{ user_obj.user }}) and password ({{ user_obj.password }})</ul>
-				<ul>3. Alternative add the topic manually, your topic is: {{ user_obj.topic }}</ul>
-			</div>
+            <div class="list">
+                <ul>1. Download the <a href="https://ntfy.sh">ntfy</a> app from the playstore.</ul>
+                <ul>2. Scan the QR-Code</ul>
+            </div>
             <img src="/qr-encode?topic={{ user_obj.topic }}" id="qr-target"></img>
         </div>
     </div>
