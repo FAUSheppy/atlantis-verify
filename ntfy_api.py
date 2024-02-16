@@ -14,7 +14,7 @@ def create(target, token, user_obj):
     r.raise_for_status()
 
 def topic(target, token, user):
-    '''Create user with a topic ACL'''
+    '''Return or create & return a topic'''
 
     params = {
         "user" : user,
