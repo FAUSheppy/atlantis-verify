@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drag and Drop Priority List</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+    #priority-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 20px;
+    }
+    #priority-list li {
+        background-color: #f4f4f4;
+        padding: 10px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        transition: transform 2s ease; /* Smooth transition */
+    }
+    #priority-list li:hover {
+        background-color: #ddd;
+    }
+</style>
+</head>
+<body>
+
+<h2>Send me a test-notification</h2>
+<button onclick="send_test('ntfy')" >NTFY</button>
+<button onclick="send_test('email')" >E-Mail</button>
+<button onclick="send_test('signal')" >Signal</button>
+<button onclick="send_test('any')" >Max Priority Selected</button>
+
+<h2>Priority List</h2>
+<p>Drag and drop the items to indicate priority:</p>
+
+<ul id="priority-list">
+    <li draggable="true" data-id="email">E-Mail</li>
+    <li draggable="true" data-id="signal">Signal</li>
+    <li draggable="true" data-id="ntfy">NTFY</li>
+</ul>
+
+<script>
+    const priorityList = document.getElementById('priority-list');
+
+    let draggedItem = null;
+
+    priorityList.addEventListener('dragstart', function (e) {
+        draggedItem = e.target;
+        e.dataTransfer.setData('text/plain', e.target.dataset.id);
+    });
+
+    priorityList.addEventListener('dragover', function (e) {
+        e.preventDefault();
+    });
+
+    priorityList.addEventListener('drop', function (e) {
+        e.preventDefault();
+        const droppedItem = e.target;
+
+        if (droppedItem.tagName === 'LI') {
+
+            const draggedItemId = e.dataTransfer.getData('text/plain');
+            const droppedItemId = droppedItem.dataset.id;
+
+            // Calculate the index of the dragged item
+            const draggedIndex = Array.from(priorityList.children).indexOf(draggedItem);
+
+            // Calculate the index of the dropped item
+            const droppedIndex = Array.from(priorityList.children).indexOf(droppedItem);
+
+            // Swap the positions of the dragged and dropped items in the list
+            if (draggedIndex < droppedIndex) {
+                priorityList.insertBefore(draggedItem, droppedItem.nextSibling);
+            } else {
+                priorityList.insertBefore(draggedItem, droppedItem);
+            }
+
+            // Update the priority data and send it to the server as JSON
+            const priorityData = [];
+            const items = priorityList.querySelectorAll('li');
+            items.forEach((item, index) => {
+                priorityData.push({
+                    id: item.dataset.id,
+                    priority: index + 1
+                });
+            });
+
+            sendPriorityDataToServer(priorityData);
+        }
+    });
+
+    function sendPriorityDataToServer(data) {
+        // You would replace this with actual code to send data to your server
+        console.log('Sending priority data to server:', data);
+    }
+
+    function send_test(type){
+
+    }
+    const listItems = document.querySelectorAll('#priority-list li');
+    listItems.forEach(item => {
+        item.style.transition = "transform 2s ease";
+    });
+</script>
+
+</body>
+</html>

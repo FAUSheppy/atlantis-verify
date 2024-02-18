@@ -137,6 +137,20 @@ def verification_status():
 
     return flask.jsonify(verifications)
 
+@app.route("/notification-settings", methods=["GET", "POST"])
+def notification_settings():
+
+    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    groups = flask.request.headers.get("X-Forwarded-Groups")
+
+    if flask.request.method == "GET":
+        return flask.render_template("notification_settings.html", user=user, group=groups)
+    elif flask.request.method == "POST":
+        print(flask.request.json)
+        return 200
+    else:
+        raise AssertionError()
+
 @app.route("/qr-encode")
 def qr_encode():
 
