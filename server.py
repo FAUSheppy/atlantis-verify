@@ -27,6 +27,23 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sqlite.db"
 db = SQLAlchemy(app)
 
+def _get_user():
+    '''Return current user, allow for admin user impersonation'''
+
+    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    impersonate_user = flask.request.cookies.get("impersonate_user")
+
+    if not user:
+        raise AssertionError("X-Forwarded-Preferred-Username header is empty or does not exist")
+        # return ("X-Forwarded-Preferred-Username header is empty or does not exist", 500)
+
+    if impersonate_user:
+        if user == app.config["OIDC_ADMIN_USER"]:
+            return (impersonate_user, True)
+
+    return (user, False)
+        
+
 class NTFYUser(db.Model):
 
     __tablename__ = "ntfy"
@@ -129,7 +146,7 @@ def verify_email(user):
 @app.route("/verification-status")
 def verification_status():
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    user, impersonating = _get_user()
     verifications = ldaptools.get_verifications_for_user(user, app)
 
     # FIXME: having email and phone number exposed here is actually kinda stupid and CRSF-leaky
@@ -140,7 +157,7 @@ def verification_status():
 @app.route("/qr-encode")
 def qr_encode():
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    user, impersonating = _get_user()
     topic = flask.request.args.get("topic")
     target_clean = app.config["NTFY_PUSH_TARGET"].replace("https://","")
     img = qrcode.make('ntfy://{}/{}'.format(target_clean, topic))
@@ -149,10 +166,28 @@ def qr_encode():
     img_io.seek(0)
     return flask.send_file(img_io, mimetype='image/jpeg')
 
+@app.route("/impersonate")
+def impersonate():
+
+    target_user = flask.request.args.get("user")
+
+    resp = flask.make_response(flask.redirect("/"))
+    resp.set_cookie('impersonate_user', target_user)
+    return resp
+
+@app.route("/impersonate-reset")
+def impersonate_reset():
+
+    target_user = flask.request.args.get("user")
+
+    resp = flask.make_response(flask.redirect("/"))
+    resp.delete_cookie('impersonate_user', target_user)
+    return resp
+
 @app.route("/ntfy")
 def ntfy():
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username") or "anonymous"
+    user, impersonating = _get_user()
     user_obj = db.session.query(NTFYUser).filter(NTFYUser.user == user).first()
 
     if not user_obj:
@@ -164,12 +199,13 @@ def ntfy():
         db.session.add(user_obj)
 
     return flask.render_template("ntfy_setup.html", user=user, user_obj=user_obj,
-                                    main_home=app.config["MAIN_HOME"])
+                                    main_home=app.config["MAIN_HOME"], config=app.config,
+                                    impersonating=impersonating)
 
 @app.route("/verify")
 def verify_route():
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    user, impersonating = _get_user()
    
     verify_type = flask.request.args.get("type")
     if not verify_type:
@@ -226,9 +262,8 @@ def index():
     # query email + phone verification status
     # display as [ email ] [ example@atlantishq.com ] [ verified? ] [ verify now ]
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
-    if not user:
-        return ("X-Forwarded-Preferred-Username header is empty or does not exist", 500)
+    user, impersonating = _get_user()
+
     verifications = ldaptools.get_verifications_for_user(user, app)
     if not verifications:
         return ("User object for this user not found.", 500)
@@ -240,12 +275,13 @@ def index():
 
     return flask.render_template("index.html", user=user, verifications=verifications,
                                     main_home=app.config["MAIN_HOME"],
-                                    ntfy_generated=ntfy_generated)
+                                    ntfy_generated=ntfy_generated, config=app.config,
+                                    impersonating=impersonating)
 
 @app.route("/status")
 def status():
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+    user, impersonating = _get_user()
     verifications = ldaptools.get_verifications_for_user(user, app)
 
     return json.dumps(verifications, indent=2)
@@ -280,6 +316,8 @@ def create_app():
         app.config["NTFY_API_TARGET"] = os.environ["NTFY_API_TARGET"]
         app.config["NTFY_PUSH_TARGET"] = os.environ["NTFY_PUSH_TARGET"]
 
+        app.config["OIDC_ADMIN_USER"] = os.environ["OIDC_ADMIN_USER"]
+
 
 if __name__ == "__main__":
 
@@ -307,6 +345,12 @@ if __name__ == "__main__":
 
     parser.add_argument('--main-home', help="Backlink form home button")
 
+    parser.add_argument('--oidc-admin-user', help="Allow this user to impersonate other users")
+
+    parser.add_argument('--ntfy-access-token')
+    parser.add_argument('--ntfy-api-target')
+    parser.add_argument('--ntfy-push-target')
+
     args = parser.parse_args()
 
 
@@ -326,8 +370,13 @@ if __name__ == "__main__":
     app.config["KEYCLOAK_REALM"] = args.keycloak_realm
     app.config["KEYCLOAK_ADMIN_USER"] = args.keycloak_admin_user
     app.config["KEYCLOAK_ADMIN_PASS"] = args.keycloak_admin_pass
+    app.config["OIDC_ADMIN_USER"] = args.oidc_admin_user
 
     app.config["MAIN_HOME"] = args.main_home
+
+    app.config["NTFY_ACCESS_TOKEN"] = args.ntfy_access_token
+    app.config["NTFY_API_TARGET"] = args.ntfy_api_target
+    app.config["NTFY_PUSH_TARGET"] = args.ntfy_push_target
 
     # define ldap args #
     ldap_args = {

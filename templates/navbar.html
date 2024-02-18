@@ -4,4 +4,9 @@
         {% endif %}
         <div style="float: left;" class="navbar-el">{{ user or  "" }}</div>
         <a href="/oauth2/sign_out" class="navbar-el">Logout</a>
+        {% if config.get("OIDC_ADMIN_USER") == user %}
+            <div style="float: right;" class="mr-2 navbar-el">You may impersonate others!</div>
+        {% elif impersonating %}
+            <a href="/impersonate-reset" class="mr-2 navbar-el">Stop impersonating</a>
+        {% endif %}
     </div>
