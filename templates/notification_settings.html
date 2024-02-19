@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+{% include "head.html" %}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Drag and Drop Priority List</title>
@@ -26,21 +27,23 @@
 </style>
 </head>
 <body>
-<h3>{{ user }}</h3>
-<h2>Send me a test-notification</h2>
-<button onclick="send_test('ntfy')">NTFY</button>
-<button onclick="send_test('email')">E-Mail</button>
-<button onclick="send_test('signal')">Signal</button>
-<button onclick="send_test('any')">Max Priority Selected</button>
-
-<h2>Priority List</h2>
-<p>Drag and drop the items to indicate priority:</p>
-
-<ul id="priority-list">
-    <li draggable="true" data-id="email">E-Mail</li>
-    <li draggable="true" data-id="signal">Signal</li>
-    <li draggable="true" data-id="ntfy">NTFY</li>
-</ul>
+{% include "navbar.html" %}
+<div class="main-container" style="padding: 1vw;">
+    <h4>Send me a test-notification</h4>
+    <button onclick="send_test('ntfy')">NTFY</button>
+    <button onclick="send_test('email')">E-Mail</button>
+    <button onclick="send_test('signal')">Signal</button>
+    <button onclick="send_test('any')">Max Priority Selected</button>
+    <br><br> 
+    <h4>Priority List</h4>
+    <p>Drag and drop the items to indicate priority:</p>
+    
+    <ul id="priority-list">
+        {% for id, name, prio in prio_list %}
+        <li draggable="true" data-id="{{ id }}">{{ name }}</li>
+        {% endfor %}
+    </ul>
+</div>
 
 <script>
     const priorityList = document.getElementById('priority-list');
@@ -95,6 +98,25 @@
     function sendPriorityDataToServer(data) {
         // You would replace this with actual code to send data to your server
         console.log('Sending priority data to server:', data);
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+
+        fetch("/settings", options).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok (prio settings');
+            }else{
+                console.log("OK")
+            }
+        }).catch(error => {
+            console.error('Priority settings POST failed', error);
+        })
+
     }
 
     function send_test(type){

@@ -178,11 +178,57 @@ def notification_settings():
 
     user, impersonating = _get_user()
 
+    # build settings url #
+    settings_url = app.config["DISPATCH_SERVER"]
+    settings_url += "/settings?user={}&token={}".format(user, app.config["DISPATCH_SETTINGS_TOKEN"])
+
     if flask.request.method == "GET":
-        return flask.render_template("notification_settings.html", user=user)
+
+        # query the prio list #
+        r = requests.get(settings_url, auth=app.config["DISPATCH_AUTH"])
+        prio_list = []
+
+        # create prio list #
+        for key, value in r.json().items():
+
+            if key == "username":
+                continue
+
+            id_str = key.split("_priority")[0]
+            description = id_str
+
+            if description == "email":
+                description = "E-Mail"
+            elif description == "ntfy":
+                description = description.upper()
+            else:
+                description = description.title()
+
+            prio_list.append((id_str, description, value))
+
+        print(prio_list)
+        prio_list = list(sorted(prio_list, key=lambda x: x[2], reverse=True))
+        print(prio_list)
+        return flask.render_template("notification_settings.html", user=user, prio_list=prio_list)
+
     elif flask.request.method == "POST":
         print(flask.request.json)
-        return 200
+
+        # build payload to dispatch #
+        payload = dict()
+        for id_prio_dict in flask.request.json:
+            method = id_prio_dict["id"] + "_priority"
+            priority = 10 - id_prio_dict["priority"] # invert priority (html list pos 0 should be highest)
+            payload.update({ method : priority })
+
+        # post new settings #
+        r = requests.post(settings_url, auth=app.config["DISPATCH_AUTH"], json=payload)
+        try:
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            print(r.text, e, file=sys.stderr)
+            return (str(e), 500)
+        return ("", 204)
     else:
         raise AssertionError()
 
