@@ -94,6 +94,25 @@ def email_challenge():
     # # PUT https://keycloak.atlantishq.de/admin/realms/master/users/d1be393e-2fdf-40a5-9748-35bad4ebb7ed/execute-actions-email?lifespan=43200
     # # JSON Payload ["VERIFY_EMAIL"]
 
+@app.route("/send-test-notification", methods=["POST"])
+def send_test_notification():
+    '''Send a test notiication to the specified user'''
+    
+    user, impersonating = _get_user()
+    print(user)
+    method = flask.request.json.get("method")
+
+    payload = { "msg" : "This is a test notification you initiated from the Web-Interface",
+                    "users" : user, "title" : "Test Notification", "method" : method }
+
+    r = requests.post(app.config["DISPATCH_SERVER"] + "/smart-send",
+                    json=payload, auth=app.config["DISPATCH_AUTH"])
+
+    r.raise_for_status()
+
+    return ("", 204)
+
+
 def signal_challenge(user):
 
     # add uid to db #
@@ -154,14 +173,13 @@ def verification_status():
 
     return flask.jsonify(verifications)
 
-@app.route("/notification-settings", methods=["GET", "POST"])
+@app.route("/settings", methods=["GET", "POST"])
 def notification_settings():
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
-    groups = flask.request.headers.get("X-Forwarded-Groups")
+    user, impersonating = _get_user()
 
     if flask.request.method == "GET":
-        return flask.render_template("notification_settings.html", user=user, group=groups)
+        return flask.render_template("notification_settings.html", user=user)
     elif flask.request.method == "POST":
         print(flask.request.json)
         return 200

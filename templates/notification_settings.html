@@ -26,12 +26,12 @@
 </style>
 </head>
 <body>
-
+<h3>{{ user }}</h3>
 <h2>Send me a test-notification</h2>
-<button onclick="send_test('ntfy')" >NTFY</button>
-<button onclick="send_test('email')" >E-Mail</button>
-<button onclick="send_test('signal')" >Signal</button>
-<button onclick="send_test('any')" >Max Priority Selected</button>
+<button onclick="send_test('ntfy')">NTFY</button>
+<button onclick="send_test('email')">E-Mail</button>
+<button onclick="send_test('signal')">Signal</button>
+<button onclick="send_test('any')">Max Priority Selected</button>
 
 <h2>Priority List</h2>
 <p>Drag and drop the items to indicate priority:</p>
@@ -99,7 +99,30 @@
 
     function send_test(type){
 
+        const data = {
+            "method" : type
+        }
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+
+        fetch("/send-test-notification", options).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }else{
+                console.log("OK")
+            }
+        }).catch(error => {
+            console.error('Notification test failed:', error);
+        })
+        
     }
+
     const listItems = document.querySelectorAll('#priority-list li');
     listItems.forEach(item => {
         item.style.transition = "transform 2s ease";
