@@ -361,6 +361,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--interface", default="127.0.0.1", help="Interface to listen on")
     parser.add_argument("-p", "--port",      default="5000",      help="Port to listen on")
     parser.add_argument("--dispatch-server", required=True,       help="Dispatche Server")
+    parser.add_argument('--dispatch-settings-token')
     parser.add_argument('--engine', default="sqlite://",
                               help="e.g. postgresql+psycopg2://user:pass@localhost/dbname")
 
@@ -375,7 +376,6 @@ if __name__ == "__main__":
     parser.add_argument('--ldap-manager-password')
 
     parser.add_argument('--dispatcher-passfile', required=True)
-    parser.add_argument('--dispatcher-settings-token')
 
     parser.add_argument('--main-home', help="Backlink form home button")
 
