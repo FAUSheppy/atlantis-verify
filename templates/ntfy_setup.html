@@ -6,10 +6,13 @@
     <div class="main-container" style="padding: 0;">
         <div class="center" style="text-align: center;">
             <div class="list">
-                <ul>1. Download the <a href="https://ntfy.sh">ntfy</a> app from the playstore.</ul>
-                <ul>2. Scan the QR-Code</ul>
+                <ul>1. Download the <a style="text-decoration: underline; color: cyan;"
+                    href="https://ntfy.sh">ntfy</a> app from the playstore.</ul>
+                <ul>2. Scan the QR-Code (or click it on your phone)</ul>
             </div>
-            <img src="/qr-encode?topic={{ user_obj.topic }}" id="qr-target"></img>
+            <a href="ntfy://{{ ntfy_push_target }}/{{ user_obj.topic }}">
+                <img src="/qr-encode?topic={{ user_obj.topic }}" id="qr-target"></img>
+            </a>
         </div>
     </div>
 </body>

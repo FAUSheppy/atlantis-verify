@@ -277,9 +277,10 @@ def ntfy():
         #ntfy_api.create(app.config["NTFY_API_TARGET"], app.config["NTFY_ACCESS_TOKEN"], user_obj)
         db.session.add(user_obj)
 
+    ntfy_link_clean_host = app.config["NTFY_PUSH_TARGET"].replace("https://","")
     return flask.render_template("ntfy_setup.html", user=user, user_obj=user_obj,
                                     main_home=app.config["MAIN_HOME"], config=app.config,
-                                    impersonating=impersonating)
+                                    impersonating=impersonating, ntfy_push_target=ntfy_link_clean_host)
 
 @app.route("/verify")
 def verify_route():
