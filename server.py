@@ -334,6 +334,7 @@ def create_app():
         user = os.environ["DISPATCH_AUTH_USER"]
         password = os.environ["DISPATCH_AUTH_PASSWORD"]
         app.config["DISPATCH_AUTH"] = (user, password)
+        app.config["DISPATCH_SETTINGS_TOKEN"] = os.environ["DISPATCH_SETTINGS_TOKEN"]
 
         app.config["DISPATCH_SERVER"] = os.environ["DISPATCH_SERVER"]
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["SQLALCHEMY_DATABASE_URI"]
@@ -374,6 +375,7 @@ if __name__ == "__main__":
     parser.add_argument('--ldap-manager-password')
 
     parser.add_argument('--dispatcher-passfile', required=True)
+    parser.add_argument('--dispatcher-settings-token')
 
     parser.add_argument('--main-home', help="Backlink form home button")
 
@@ -397,6 +399,7 @@ if __name__ == "__main__":
 
     # set app config #
     app.config["DISPATCH_SERVER"] = args.dispatch_server
+    app.config["DISPATCH_SETTINGS_TOKEN"] = args.dispatch_settings_token
     app.config["SQLALCHEMY_DATABASE_URI"] = args.engine
     app.config["KEYCLOAK_URL"] = args.keycloak_url
     app.config["KEYCLOAK_REALM"] = args.keycloak_realm
