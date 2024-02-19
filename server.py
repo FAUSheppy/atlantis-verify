@@ -174,6 +174,36 @@ def verification_status():
 
     return flask.jsonify(verifications)
 
+@app.route("/webhooks")
+def webhooks():
+    '''Webhook frontend'''
+
+    user, impersonating = _get_user()
+    # info is loaded from JS #
+    return flask.render_template("webhooks.html", user=user, dispatch_server=app.config["DISPATCH_SERVER"])
+    
+
+@app.route("/webhooks-api", methods=["GET", "POST", "DELETE"])
+def webhooks_api():
+
+    user, impersonating = _get_user()
+
+    # build webhook url #
+    webhooks_url = app.config["DISPATCH_SERVER"]
+    webhooks_url += "/webhooks?user={}&token={}".format(user, app.config["DISPATCH_SETTINGS_TOKEN"])
+
+    if flask.request.method == "GET":
+        ret = requests.get(webhooks_url).json()
+        return flask.jsonify(ret)
+    elif flask.request.method == "POST":
+        r = requests.post(webhooks_url)
+        r.raise_for_status()
+        return ("", 204)
+    elif flask.request.method == "DELETE":
+        r = requests.delete(webhooks_url, json=flask.request.json)
+        r.raise_for_status()
+        return ("", 204)
+
 @app.route("/settings", methods=["GET", "POST"])
 def notification_settings():
 

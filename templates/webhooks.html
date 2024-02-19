@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{% include "head.html" %}
+</head>
+<body>
+{% include "navbar.html" %}
+<div class="main-container" style="padding: 1vw;">
+    <button class="btn btn-primary" onclick="create_new()">Create New</button>
+    <div class="row my-3">
+        <div class="col-8">
+            <h3>Target</h3>
+        </div>
+        <div class="col-4">
+
+        </div>
+    </div>
+    <div class="" id="webhook-list-parent">
+    </div>
+
+    <div class="my-3">
+        <h3>Example</h3>
+        <p>
+            curl -H "Content-Type: application/json" -H "Authorization: abc" -X POST "TARGET_HERE" \<br>
+                -d '{ "title" : "Hello", "msg" : "Wello World", "method" : "any"}'
+        </p>
+    </div>
+</div>
+
+<script defer>
+    window.onload = update_list()
+    const webhook_list_parent = document.getElementById('webhook-list-parent');
+
+    function delete_existing(e){
+        path = e.target.id
+        const options = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ "path" : path })
+        };
+        fetch("/webhooks-api", options).then(response => {
+            update_list()
+        })
+    }
+
+    function create_new(){
+        const options = {
+            method: 'POST',
+        };
+        fetch("/webhooks-api", options).then(response => {
+            update_list()
+        })
+    }
+
+    function update_list(){
+        const options = {
+            method: 'GET',
+        };
+        fetch("/webhooks-api", options).then(response => {
+            response.json().then(data =>{
+
+                // clear out parent
+                webhook_list_parent.innerHTML = ""
+
+                data.forEach(entry => {
+
+                    // Create a new row element
+                    const row = document.createElement('div');
+                    row.classList.add('row');
+
+                    const col1 = document.createElement('div');
+                    col1.innerHTML = "{{ dispatch_server }}" + "/smart-send/" + entry
+                    col1.classList.add('col-8');
+                    row.appendChild(col1);
+
+                    const col2 = document.createElement('div');
+                    col2.classList.add('col-4');
+                    const delete_button = document.createElement('button');
+                    delete_button.innerHTML = "Delete"
+                    delete_button.id = entry
+                    delete_button.onclick = delete_existing
+                    delete_button.classList.add("btn", "btn-primary", "waves-effect", "waves-light", "float-right")
+                    col2.appendChild(delete_button)
+                    row.appendChild(col2);
+
+                     // Append the row to the container
+                     webhook_list_parent.appendChild(row);
+                })
+            })
+        })
+    }
+
+    function sendPriorityDataToServer(data) {
+        // You would replace this with actual code to send data to your server
+        console.log('Sending priority data to server:', data);
+
+        fetch("/settings", options).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok (prio settings');
+            }else{
+                console.log("OK")
+            }
+        }).catch(error => {
+            console.error('Priority settings POST failed', error);
+        })
+
+    }
+
+    function send_test(type){
+
+        const data = {
+            "method" : type
+        }
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        };
+
+        fetch("/send-test-notification", options).then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }else{
+                console.log("OK")
+            }
+        }).catch(error => {
+            console.error('Notification test failed:', error);
+        })
+        
+    }
+
+    const listItems = document.querySelectorAll('#priority-list li');
+    listItems.forEach(item => {
+        item.style.transition = "transform 2s ease";
+    });
+</script>
+
+</body>
+</html>
