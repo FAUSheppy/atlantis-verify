@@ -76,7 +76,7 @@ def update_status(verification):
                 verification.status == b'Waiting for dispatch'):
             url = app.config["DISPATCH_SERVER"]
             url += "/get-dispatch-status?secret={}".format(verification.dispatch_id)
-            r = requests.get(url, auth=app.config["DISPATCH_AUTH"])
+            r = requests.get(url)
             if r.ok:
                 if r.content == b"Not in Queue":
                     verification.status = "Message Sent - Please enter code"
@@ -105,8 +105,8 @@ def send_test_notification():
     payload = { "msg" : "This is a test notification you initiated from the Web-Interface",
                     "users" : user, "title" : "Test Notification", "method" : method }
 
-    r = requests.post(app.config["DISPATCH_SERVER"] + "/smart-send",
-                    json=payload, auth=app.config["DISPATCH_AUTH"])
+    r = requests.post(app.config["DISPATCH_SERVER"] +
+                "/smart-send?dispatch-access-token={}".format(app.config["DISPATCH_ACCESS_TOKEN"]), json=payload)
 
     r.raise_for_status()
 
@@ -130,8 +130,9 @@ def signal_challenge(user):
     message += "or report it to root@atlantishq.de."
     payload = { "users": [user], "msg" : message }
 
-    r = requests.post(app.config["DISPATCH_SERVER"] + "/smart-send",
-                    json=payload, auth=app.config["DISPATCH_AUTH"])
+    r = requests.post(app.config["DISPATCH_SERVER"] +
+            "/smart-send?dispatch-access-token={}".format(app.config["DISPATCH_ACCESS_TOKEN"]), json=payload)
+
     if not r.ok:
         return (None, "Dispatcher responded {} {}".format(r.content, r.status_code))
 
@@ -185,7 +186,7 @@ def notification_settings():
     if flask.request.method == "GET":
 
         # query the prio list #
-        r = requests.get(settings_url, auth=app.config["DISPATCH_AUTH"])
+        r = requests.get(settings_url)
         prio_list = []
 
         # create prio list #
@@ -222,7 +223,7 @@ def notification_settings():
             payload.update({ method : priority })
 
         # post new settings #
-        r = requests.post(settings_url, auth=app.config["DISPATCH_AUTH"], json=payload)
+        r = requests.post(settings_url, json=payload)
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as e:
@@ -377,9 +378,7 @@ def create_app():
         }
         app.config["LDAP_ARGS"] = ldap_args
 
-        user = os.environ["DISPATCH_AUTH_USER"]
-        password = os.environ["DISPATCH_AUTH_PASSWORD"]
-        app.config["DISPATCH_AUTH"] = (user, password)
+        app.config["DISPATCH_ACCESS_TOKEN"] = os.environ["DISPATCH_ACCESS_TOKEN"]
         app.config["DISPATCH_SETTINGS_TOKEN"] = os.environ["DISPATCH_SETTINGS_TOKEN"]
 
         app.config["DISPATCH_SERVER"] = os.environ["DISPATCH_SERVER"]
@@ -408,6 +407,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--port",      default="5000",      help="Port to listen on")
     parser.add_argument("--dispatch-server", required=True,       help="Dispatche Server")
     parser.add_argument('--dispatch-settings-token')
+    parser.add_argument('--dispatch-access-token')
     parser.add_argument('--engine', default="sqlite://",
                               help="e.g. postgresql+psycopg2://user:pass@localhost/dbname")
 
@@ -421,8 +421,6 @@ if __name__ == "__main__":
     parser.add_argument('--ldap-manager-dn')
     parser.add_argument('--ldap-manager-password')
 
-    parser.add_argument('--dispatcher-passfile', required=True)
-
     parser.add_argument('--main-home', help="Backlink form home button")
 
     parser.add_argument('--oidc-admin-user', help="Allow this user to impersonate other users")
@@ -433,19 +431,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-
-    with open(args.dispatcher_passfile) as f:
-
-        content = f.read()
-
-        user = content.split("\n")[0]
-        password = content.split("\n")[1]
-
-        app.config["DISPATCH_AUTH"] = (user, password)
-
     # set app config #
     app.config["DISPATCH_SERVER"] = args.dispatch_server
     app.config["DISPATCH_SETTINGS_TOKEN"] = args.dispatch_settings_token
+    app.config["DISPATCH_ACCESS_TOKEN"] = args.dispatch_access_token
     app.config["SQLALCHEMY_DATABASE_URI"] = args.engine
     app.config["KEYCLOAK_URL"] = args.keycloak_url
     app.config["KEYCLOAK_REALM"] = args.keycloak_realm
