@@ -8,7 +8,7 @@
         {% for key, value in verifications["verifications"].items() %}
         <div class="row" style="margin: auto;">
             <div class="col-4">
-                <p class="v-info"> {{ key }} </p>
+                <p class="v-info"> {{ key.title() }} </p>
             </div>
             <div class="col-4">
                 {% if value %}
@@ -18,9 +18,12 @@
                 {% endif %}
             </div>
             <div class="col-4">
-                {% if not value %}
+                {% if not value and key != "signal" %}
                 <a class="btn btn-primary" style="width: max-content;"
-                    href="/verify?type={{ key }}" class="btn btn-primary">Verify Now</a>
+                    href="/verify?type={{ key }}" class="btn btn-primary">Verify Now
+                    </a>
+                {% else if key == "signal" %}
+                <div class="btn btn-primary" style="width: max-content;">Disabled by Admin<div>
                 {% endif %}
             </div>
         </div>
