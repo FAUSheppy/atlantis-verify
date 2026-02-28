@@ -427,7 +427,7 @@ def create_app():
 
 @app.route('/defaultFavicon.ico')
 def favicon():
-    return send_from_directory(
+    return flask.send_from_directory(
         os.path.join(app.root_path, 'static'),
         'favicon.ico',
         mimetype='image/vnd.microsoft.icon'
