@@ -237,9 +237,7 @@ def notification_settings():
 
             prio_list.append((id_str, description, value))
 
-        print(prio_list)
         prio_list = list(sorted(prio_list, key=lambda x: x[2], reverse=True))
-        print(prio_list)
         return flask.render_template("notification_settings.html", user=user, prio_list=prio_list)
 
     elif flask.request.method == "POST":
@@ -427,6 +425,13 @@ def create_app():
 
         app.config["OIDC_ADMIN_USER"] = os.environ["OIDC_ADMIN_USER"]
 
+@app.route('/defaultFavicon.ico')
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, 'static'),
+        'favicon.ico',
+        mimetype='image/vnd.microsoft.icon'
+    )
 
 if __name__ == "__main__":
 
