@@ -21,7 +21,7 @@
 
             DISPATCH_SERVER=
 
-            SQLALCHEMY_DATABASE_URI="instance/database.sqlite"
+            # DATABASE_URL="<external db url>"
 
             KEYCLOAK_URL=
             KEYCLOAK_REALM=
