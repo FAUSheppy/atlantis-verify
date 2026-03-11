@@ -37,8 +37,7 @@ def _get_user():
     impersonate_user = flask.request.cookies.get("impersonate_user")
 
     if not user:
-        raise AssertionError("X-Forwarded-Preferred-Username header is empty or does not exist")
-        # return ("X-Forwarded-Preferred-Username header is empty or does not exist", 500)
+        return (f"{AUTH_HEADER} header is empty or does not exist", 500)
 
     if impersonate_user:
         if user == app.config["OIDC_ADMIN_USER"]:
