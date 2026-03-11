@@ -1,4 +1,4 @@
-import hashlib                                                                                      
+import hashlib
 import os
 import flask
 import werkzeug
@@ -27,10 +27,13 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///sqlite.db"
 db = SQLAlchemy(app)
 
+AUTH_HEADER = os.environ.get("X_AUTH_USER_HEADER") or "X-Forwarded-Preferred-Username"
+
 def _get_user():
     '''Return current user, allow for admin user impersonation'''
 
-    user = flask.request.headers.get("X-Forwarded-Preferred-Username")
+
+    user = flask.request.headers.get(AUTH_HEADER)
     impersonate_user = flask.request.cookies.get("impersonate_user")
 
     if not user:
@@ -42,19 +45,19 @@ def _get_user():
             return (impersonate_user, True)
 
     return (user, False)
-        
+
 
 class NTFYUser(db.Model):
 
     __tablename__ = "ntfy"
-    
+
     user = Column(String, primary_key=True)
     topic = Column(String, primary_key=True)
     password = Column(String)
 
 
 class Verification(db.Model):
-    
+
     __tablename__ = "verification"
 
     challenge_id = Column(String, primary_key=True)
@@ -97,7 +100,7 @@ def email_challenge():
 @app.route("/send-test-notification", methods=["POST"])
 def send_test_notification():
     '''Send a test notiication to the specified user'''
-    
+
     user, impersonating = _get_user()
     print(user)
     method = flask.request.json.get("method")
@@ -181,7 +184,7 @@ def webhooks():
     user, impersonating = _get_user()
     # info is loaded from JS #
     return flask.render_template("webhooks.html", user=user, dispatch_server=app.config["DISPATCH_SERVER"])
-    
+
 
 @app.route("/webhooks-api", methods=["GET", "POST", "DELETE"])
 def webhooks_api():
@@ -314,7 +317,7 @@ def ntfy():
 def verify_route():
 
     user, impersonating = _get_user()
-   
+
     verify_type = flask.request.args.get("type")
     if not verify_type:
         return ("Missing mandetory parameter 'type' for verification", 500)
