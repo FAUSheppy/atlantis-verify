@@ -219,6 +219,14 @@ def notification_settings():
 
         # query the prio list #
         r = requests.get(settings_url)
+        try:
+            r.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            msg =  f"Failed to fetch settings for {user} "
+            msg += f"from {app.config['DISPATCH_SETTINGS_TOKEN']}: {e}"
+            print(msg, file=sys.stderr)
+            return (msg, 500)
+
         prio_list = []
 
         # create prio list #
