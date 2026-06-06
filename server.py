@@ -409,23 +409,29 @@ def create_app():
     db.create_all()
 
     if not app.config.get("NO_READ_ENV"):
-        ldap_args = {
-            "LDAP_SERVER"  : os.environ["LDAP_SERVER"],
-            "LDAP_BIND_DN" : os.environ["LDAP_BIND_DN"],
-            "LDAP_BIND_PW" : os.environ["LDAP_BIND_PW"],
-            "LDAP_BASE_DN" : os.environ["LDAP_BASE_DN"]
-        }
-        app.config["LDAP_ARGS"] = ldap_args
+
+        if app.config.get("LDAP_NO_READ_ENV"):
+            app.config["LDAP_ARGS"] = {}
+        else:
+            ldap_args = {
+                "LDAP_SERVER"  : os.environ["LDAP_SERVER"],
+                "LDAP_BIND_DN" : os.environ["LDAP_BIND_DN"],
+                "LDAP_BIND_PW" : os.environ["LDAP_BIND_PW"],
+                "LDAP_BASE_DN" : os.environ["LDAP_BASE_DN"]
+            }
+            app.config["LDAP_ARGS"] = ldap_args
 
         app.config["DISPATCH_ACCESS_TOKEN"] = os.environ["DISPATCH_ACCESS_TOKEN"]
         app.config["DISPATCH_SETTINGS_TOKEN"] = os.environ["DISPATCH_SETTINGS_TOKEN"]
 
         app.config["DISPATCH_SERVER"] = os.environ["DISPATCH_SERVER"]
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLALCHEMY_DATABASE_URI") or os.environ.get("DATABASE_URL")
-        app.config["KEYCLOAK_URL"] = os.environ["KEYCLOAK_URL"]
-        app.config["KEYCLOAK_REALM"] = os.environ["KEYCLOAK_REALM"]
-        app.config["KEYCLOAK_ADMIN_USER"] = os.environ["KEYCLOAK_ADMIN_USER"]
-        app.config["KEYCLOAK_ADMIN_PASS"] = os.environ["KEYCLOAK_ADMIN_PASS"]
+
+        if app.config.get("KEYCLOAK_NO_READ_ENV"):
+            app.config["KEYCLOAK_URL"] = os.environ["KEYCLOAK_URL"]
+            app.config["KEYCLOAK_REALM"] = os.environ["KEYCLOAK_REALM"]
+            app.config["KEYCLOAK_ADMIN_USER"] = os.environ["KEYCLOAK_ADMIN_USER"]
+            app.config["KEYCLOAK_ADMIN_PASS"] = os.environ["KEYCLOAK_ADMIN_PASS"]
 
         app.config["MAIN_HOME"] = os.environ["MAIN_HOME"]
 
