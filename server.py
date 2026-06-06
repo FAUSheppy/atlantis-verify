@@ -427,7 +427,7 @@ def create_app():
         app.config["DISPATCH_SERVER"] = os.environ["DISPATCH_SERVER"]
         app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("SQLALCHEMY_DATABASE_URI") or os.environ.get("DATABASE_URL")
 
-        if os.environ.get("KEYCLOAK_NO_READ_ENV"):
+        if not os.environ.get("KEYCLOAK_NO_READ_ENV"):
             app.config["KEYCLOAK_URL"] = os.environ["KEYCLOAK_URL"]
             app.config["KEYCLOAK_REALM"] = os.environ["KEYCLOAK_REALM"]
             app.config["KEYCLOAK_ADMIN_USER"] = os.environ["KEYCLOAK_ADMIN_USER"]
